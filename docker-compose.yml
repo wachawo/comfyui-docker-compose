@@ -2,8 +2,9 @@ services:
   comfyui:
     build:
       context: .
-      dockerfile: Dockerfile
-    image: comfyui_gpu
+      # Override with DOCKERFILE=Dockerfile.cu128 in .env for CUDA 12.8 driver.
+      dockerfile: ${DOCKERFILE:-Dockerfile}
+    image: ${COMFYUI_IMAGE:-comfyui_gpu}
     pull_policy: build
     container_name: comfyui
     hostname: comfyui
@@ -20,6 +21,13 @@ services:
       COMFYUI_PORT: "8188"
       # Extra flags passed to main.py (e.g. "--lowvram", "--novram", "--cpu").
       COMFYUI_EXTRA_ARGS: ""
+      # Model download tokens (sourced from .env via env_file).
+      CIVITAI_TOKEN: ${CIVITAI_TOKEN:-}
+      HF_TOKEN: ${HF_TOKEN:-}
+      # HuggingFace libs also read HUGGING_FACE_HUB_TOKEN — keep both in sync.
+      HUGGING_FACE_HUB_TOKEN: ${HF_TOKEN:-}
+      HF_HUB_OFFLINE: ${HF_HUB_OFFLINE:-0}
+      HUGGINGFACE_HUB_CACHE: ${HUGGINGFACE_HUB_CACHE:-/opt/ComfyUI/cache}
     ports:
       - "8188:8188"
     volumes:
@@ -31,6 +39,7 @@ services:
       - ./output:/opt/ComfyUI/output
       - ./user:/opt/ComfyUI/user
       - ./logs:/opt/ComfyUI/logs
+      - ./cache:/opt/ComfyUI/cache
     # GPU passthrough — requires nvidia-container-toolkit on host.
     deploy:
       resources:
