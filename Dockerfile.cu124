@@ -1,6 +1,6 @@
-# GPU image based on CUDA 12.8 + cuDNN (Ubuntu 24.04 ships Python 3.12).
-# Use this variant when host NVIDIA driver reports CUDA < 13 (e.g. 12.8 / 12.9).
-FROM nvidia/cuda:12.8.1-cudnn-runtime-ubuntu24.04
+# GPU image based on CUDA 12.4 + cuDNN on Ubuntu 22.04 (Python 3.10).
+# Use this variant when host NVIDIA driver supports CUDA 12.4 but not 13.
+FROM nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
@@ -8,8 +8,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 # System dependencies per INSTALL.md step 2 plus runtime libs required by
 # ComfyUI nodes (ffmpeg for video, libgl1/libglib2.0-0 for OpenCV, libsndfile1
-# for soundfile). libcublas-12-8 provides cuBLAS / cuBLASLt runtime that
-# torch cu128 calls into — the `-runtime` base image does not include it,
+# for soundfile). libcublas-12-4 provides cuBLAS / cuBLASLt runtime that
+# torch cu124 calls into — the `-runtime` base image does not include it,
 # without it the first matmul on CUDA fails with `CUBLAS_STATUS_NOT_INITIALIZED`.
 RUN apt-get update && apt-get install -y --no-install-recommends \
         python3 \
@@ -22,7 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libgl1 \
         libglib2.0-0 \
         libsndfile1 \
-        libcublas-12-8 \
+        libcublas-12-4 \
     && rm -rf /var/lib/apt/lists/*
 
 # Virtualenv per INSTALL.md step 3 — venv on PATH means plain `pip`/`python3`
@@ -37,9 +37,9 @@ RUN git clone --depth=1 https://github.com/comfyanonymous/ComfyUI.git /opt/Comfy
 
 WORKDIR /opt/ComfyUI
 
-# PyTorch with CUDA 12.8 (INSTALL.md step 6).
+# PyTorch with CUDA 12.4 (INSTALL.md step 6).
 RUN pip install --no-cache-dir \
-        --index-url https://download.pytorch.org/whl/cu128 \
+        --index-url https://download.pytorch.org/whl/cu124 \
         torch torchvision torchaudio
 
 RUN pip install --no-cache-dir -r requirements.txt

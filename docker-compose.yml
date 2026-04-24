@@ -2,7 +2,7 @@ services:
   comfyui:
     build:
       context: .
-      # Override with DOCKERFILE=Dockerfile.cu128 in .env for CUDA 12.8 driver.
+      # Override with DOCKERFILE=Dockerfile.cu124 in .env for CUDA 12.4 driver.
       dockerfile: ${DOCKERFILE:-Dockerfile}
     image: ${COMFYUI_IMAGE:-comfyui_gpu}
     pull_policy: build

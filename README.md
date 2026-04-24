@@ -8,6 +8,30 @@ Dockerized [ComfyUI](https://github.com/comfyanonymous/ComfyUI) based on `nvidia
 - Docker + Docker Compose
 - [nvidia-container-toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html) for GPU passthrough
 
+### Install NVIDIA Container Toolkit (Ubuntu/Debian)
+
+Without this package `docker compose up` fails with:
+`Error response from daemon: could not select device driver "nvidia" with capabilities: [[gpu]]`.
+
+```bash
+curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey \
+  | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list \
+  | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' \
+  | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+
+sudo apt-get update
+sudo apt-get install -y nvidia-container-toolkit
+sudo nvidia-ctk runtime configure --runtime=docker
+sudo systemctl restart docker
+```
+
+Verify:
+
+```bash
+docker run --rm --gpus all nvidia/cuda:12.4.0-base-ubuntu22.04 nvidia-smi
+```
+
 ## Run
 
 ```bash
@@ -17,16 +41,16 @@ docker compose up -d --build
 
 Two build targets are shipped:
 
-| Dockerfile          | Base                                | PyTorch | Host driver reports |
-|---------------------|-------------------------------------|---------|---------------------|
-| `Dockerfile`        | `nvidia/cuda:13.0.3-…` *(default)*  | cu130   | CUDA ≥ 13.0         |
-| `Dockerfile.cu128`  | `nvidia/cuda:12.8.1-…`              | cu128   | CUDA 12.8 / 12.9    |
+| Dockerfile         | Base                                      | PyTorch | Host driver reports |
+|--------------------|-------------------------------------------|---------|---------------------|
+| `Dockerfile`       | `nvidia/cuda:13.0.3-…-ubuntu24.04` *(default)* | cu130   | CUDA ≥ 13.0         |
+| `Dockerfile.cu124` | `nvidia/cuda:12.4.1-…-ubuntu22.04`        | cu124   | CUDA 12.4 – 12.9    |
 
 Check your driver with `nvidia-smi` (top-right corner). Switch by setting in `.env`:
 
 ```env
-DOCKERFILE=Dockerfile.cu128
-COMFYUI_IMAGE=comfyui_gpu_cu128
+DOCKERFILE=Dockerfile.cu124
+COMFYUI_IMAGE=comfyui_gpu_cu124
 ```
 
 Then rebuild: `docker compose build --no-cache && docker compose up -d`.
