@@ -1,0 +1,68 @@
+services:
+  comfyui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: comfyui_gpu
+    pull_policy: build
+    container_name: comfyui
+    hostname: comfyui
+    restart: unless-stopped
+    networks:
+      - comfyui_network
+    env_file:
+      - .env
+    environment:
+      TZ: America/New_York
+      NVIDIA_VISIBLE_DEVICES: "all"
+      NVIDIA_DRIVER_CAPABILITIES: "compute,utility"
+      COMFYUI_HOST: "0.0.0.0"
+      COMFYUI_PORT: "8188"
+      # Extra flags passed to main.py (e.g. "--lowvram", "--novram", "--cpu").
+      COMFYUI_EXTRA_ARGS: ""
+    ports:
+      - "8188:8188"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ./models:/opt/ComfyUI/models
+      - ./custom_nodes:/opt/ComfyUI/custom_nodes
+      - ./input:/opt/ComfyUI/input
+      - ./output:/opt/ComfyUI/output
+      - ./user:/opt/ComfyUI/user
+      - ./logs:/opt/ComfyUI/logs
+    # GPU passthrough — requires nvidia-container-toolkit on host.
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=1
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "128m"
+        max-file: "3"
+    entrypoint: ["/bin/sh", "-c"]
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8188/')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    command:
+      - "python3 main.py --listen ${COMFYUI_HOST} --port ${COMFYUI_PORT} ${COMFYUI_EXTRA_ARGS}"
+
+networks:
+  comfyui_network:
+    driver: bridge
+    enable_ipv6: false
+    driver_opts:
+      com.docker.network.enable_ipv6: "false"
