@@ -10,14 +10,16 @@
 .env.*
 !.env.example
 
-# ComfyUI runtime volumes (mounted from docker-compose.yml)
-/models/
-/custom_nodes/
-/input/
-/output/
-/user/
-/logs/
-/cache/
+# runtime volumes (mounted from docker-compose.yml)
+models/
+custom_nodes/
+input/
+output/
+user/
+logs/
+cache/
+repos/
+repositories/
 
 # Python
 __pycache__/
@@ -36,9 +38,7 @@ dist/
 venv/
 env/
 
-# IDE / editors
-.idea/
-.vscode/
+# Editors
 *.swp
 *.swo
 *~

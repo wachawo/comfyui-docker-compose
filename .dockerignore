@@ -19,7 +19,7 @@ Dockerfile
 docker-compose.yml
 .dockerignore
 
-# ComfyUI runtime volumes — mounted at runtime, must not go into build context
+# runtime volumes (mounted from docker-compose.yml)
 models/
 custom_nodes/
 input/
@@ -27,6 +27,8 @@ output/
 user/
 logs/
 cache/
+repos/
+repositories/
 
 # Docs
 *.md
@@ -45,11 +47,10 @@ env/
 .mypy_cache/
 .ruff_cache/
 
-# IDE / editors
-.idea/
-.vscode/
+# Editors
 *.swp
 *.swo
+*~
 
 # OS
 .DS_Store
